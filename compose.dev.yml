@@ -1,0 +1,85 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: paiagent-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: paiagent
+      MYSQL_ROOT_PASSWORD: paiagent_dev_mysql_2026
+      TZ: Asia/Shanghai
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - paiagent_mysql_data:/var/lib/mysql
+      - ./backend/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ppaiagent_dev_mysql_2026"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: paiagent-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - paiagent_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  pgvector:
+    image: pgvector/pgvector:pg16
+    container_name: paiagent-pgvector
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: paiagent_vector
+      POSTGRES_USER: paiagent
+      POSTGRES_PASSWORD: paiagent_dev_pgvector_2026
+      TZ: Asia/Shanghai
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - paiagent_pgvector_data:/var/lib/postgresql/data
+      - ./backend/src/main/resources/schema-pgvector.sql:/docker-entrypoint-initdb.d/01-pgvector.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U paiagent -d paiagent_vector"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: paiagent-rustfs
+    restart: unless-stopped
+    environment:
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS: "*"
+      RUSTFS_ACCESS_KEY: paiagent-rustfs
+      RUSTFS_SECRET_KEY: paiagent_rustfs_dev_secret_2026
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - paiagent_rustfs_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+volumes:
+  paiagent_mysql_data:
+  paiagent_redis_data:
+  paiagent_pgvector_data:
+  paiagent_rustfs_data:

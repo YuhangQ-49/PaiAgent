@@ -32,10 +32,14 @@ public class RagPostgresConfiguration {
 
     @Bean(name = "ragDataSource")
     public DataSource ragDataSource(RagProperties properties) {
+        String password = properties.getDatasource().getPassword();
+        if (password == null || password.isBlank()) {
+            throw new IllegalStateException("未配置 RAG PostgreSQL 密码，请设置 RAG_POSTGRES_PASSWORD");
+        }
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(properties.getDatasource().getUrl());
         config.setUsername(properties.getDatasource().getUsername());
-        config.setPassword(properties.getDatasource().getPassword());
+        config.setPassword(password);
         config.setDriverClassName("org.postgresql.Driver");
         config.setPoolName("paiagent-rag-postgres");
         config.setMaximumPoolSize(8);

@@ -54,7 +54,8 @@ class HnswRecallControlExperimentIT {
 
         try (Connection postgres = DriverManager.getConnection(property("rag.pg.url",
                      "jdbc:postgresql://localhost:5432/paiagent_vector"),
-                     property("rag.pg.user", "paiagent"), property("rag.pg.password", "paiagent_dev_pgvector_2026"))) {
+                     property("rag.pg.user", "paiagent"),
+                     BenchmarkCredentials.require("rag.pg.password", "RAG_POSTGRES_PASSWORD"))) {
             postgres.setAutoCommit(true);
             configureBuild(postgres);
             Files.writeString(output.resolve("experiment-environment.txt"), environment(postgres),

@@ -218,7 +218,7 @@ class RagIndexReliabilityIT {
     private static final class Fixture implements AutoCloseable {
         private final String baseUrl = System.getProperty("rag.pg.url", "jdbc:postgresql://localhost:5432/paiagent_vector");
         private final String user = System.getProperty("rag.pg.user", "paiagent");
-        private final String password = System.getProperty("rag.pg.password", "paiagent_dev_pgvector_2026");
+        private final String password = BenchmarkCredentials.require("rag.pg.password", "RAG_POSTGRES_PASSWORD");
         private final String schema = "rag_it_" + UUID.randomUUID().toString().replace("-", "");
         private final DataSource dataSource;
         private final JdbcTemplate jdbc;

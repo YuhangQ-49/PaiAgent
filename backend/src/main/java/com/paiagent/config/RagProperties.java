@@ -15,7 +15,8 @@ public class RagProperties {
     @Data public static class Datasource {
         private String url = "jdbc:postgresql://localhost:5432/paiagent_vector";
         private String username = "paiagent";
-        private String password = "paiagent_dev_pgvector_2026";
+        // 密码必须通过配置注入，代码中不提供可用默认值。
+        private String password = "";
     }
     @Data public static class Embedding {
         private Long configId;

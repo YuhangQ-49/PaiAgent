@@ -50,10 +50,12 @@ class RagRetrievalBenchmarkIT {
 
         try (Connection mysql = DriverManager.getConnection(property("rag.mysql.url",
                      "jdbc:mysql://localhost:3306/paiagent?useSSL=false&allowPublicKeyRetrieval=true"),
-                     property("rag.mysql.user", "root"), property("rag.mysql.password", "paiagent_dev_mysql_2026"));
+                     property("rag.mysql.user", "root"),
+                     BenchmarkCredentials.require("rag.mysql.password", "MYSQL_PASSWORD"));
              Connection postgres = DriverManager.getConnection(property("rag.pg.url",
                      "jdbc:postgresql://localhost:5432/paiagent_vector"),
-                     property("rag.pg.user", "paiagent"), property("rag.pg.password", "paiagent_dev_pgvector_2026"))) {
+                     property("rag.pg.user", "paiagent"),
+                     BenchmarkCredentials.require("rag.pg.password", "RAG_POSTGRES_PASSWORD"))) {
             mysql.setAutoCommit(true);
             postgres.setAutoCommit(true);
             createTables(mysql, postgres);

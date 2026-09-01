@@ -1,3 +1,4 @@
+# 启动示例：docker compose --env-file backend/.env -f compose.dev.yml up -d
 services:
   mysql:
     image: mysql:8.4
@@ -5,7 +6,8 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: paiagent
-      MYSQL_ROOT_PASSWORD: paiagent_dev_mysql_2026
+      # 本地密码从项目根目录的 .env 注入，缺失时拒绝启动。
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:?请设置 MYSQL_PASSWORD}
       TZ: Asia/Shanghai
     ports:
       - "127.0.0.1:3306:3306"
@@ -13,7 +15,7 @@ services:
       - paiagent_mysql_data:/var/lib/mysql
       - ./backend/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ppaiagent_dev_mysql_2026"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p\"$$MYSQL_ROOT_PASSWORD\""]
       interval: 5s
       timeout: 5s
       retries: 30
@@ -40,7 +42,8 @@ services:
     environment:
       POSTGRES_DB: paiagent_vector
       POSTGRES_USER: paiagent
-      POSTGRES_PASSWORD: paiagent_dev_pgvector_2026
+      # 本地密码从项目根目录的 .env 注入，缺失时拒绝启动。
+      POSTGRES_PASSWORD: ${RAG_POSTGRES_PASSWORD:?请设置 RAG_POSTGRES_PASSWORD}
       TZ: Asia/Shanghai
     ports:
       - "127.0.0.1:5432:5432"
@@ -64,8 +67,9 @@ services:
       RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
       RUSTFS_CONSOLE_ENABLE: "true"
       RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS: "*"
-      RUSTFS_ACCESS_KEY: paiagent-rustfs
-      RUSTFS_SECRET_KEY: paiagent_rustfs_dev_secret_2026
+      # 对象存储凭据从项目根目录的 .env 注入，禁止提交默认凭据。
+      RUSTFS_ACCESS_KEY: ${MINIO_ACCESS_KEY:?请设置 MINIO_ACCESS_KEY}
+      RUSTFS_SECRET_KEY: ${MINIO_SECRET_KEY:?请设置 MINIO_SECRET_KEY}
     ports:
       - "127.0.0.1:9000:9000"
       - "127.0.0.1:9001:9001"
